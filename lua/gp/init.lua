@@ -1162,7 +1162,7 @@ M.query = function(buf, payload, handler, on_exit)
 	end
 
 	-- try to replace model in endpoint (for azure)
-	local endpoint = M._H.template_replace(M.config.openai_api_endpoint, "{{model}}", payload.model)
+	local endpoint = M._H.template_replace(M.config.openai_api_endpoint .. "/chat/completions", "{{model}}", payload.model)
 
 	local curl_params = vim.deepcopy(M.config.curl_params or {})
 	local args = {
@@ -2944,7 +2944,7 @@ M.Whisper = function(callback)
 			.. " && "
 			-- call openai
 			.. curl
-			.. " --max-time 20 https://api.openai.com/v1/audio/transcriptions -s "
+			.. " --max-time 20 " .. M.config.openai_api_endpoint .. "/audio/transcriptions -s "
 			.. '-H "Authorization: Bearer '
 			.. M.config.openai_api_key
 			.. '" -H "Content-Type: multipart/form-data" '
@@ -2952,6 +2952,7 @@ M.Whisper = function(callback)
 			.. M.config.whisper_language
 			.. '" -F file="@final.mp3" '
 			.. '-F response_format="json"'
+        print(M.config.openai_api_endpoint .. "/audio/transcriptions")
 
 		M._H.process(nil, "bash", { "-c", cmd }, function(code, signal, stdout, _)
 			if code ~= 0 then
@@ -3131,7 +3132,7 @@ function M.generate_image(prompt, model, quality, style, size)
 		"Authorization: Bearer " .. M.config.openai_api_key,
 		"-d",
 		vim.json.encode(payload),
-		"https://api.openai.com/v1/images/generations",
+		M.config.openai_api_endpoint .. "/images/generations",
 	}
 
 	local qid = M._H.uuid()
